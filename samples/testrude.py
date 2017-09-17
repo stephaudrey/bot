@@ -2,19 +2,9 @@ import sys
 import time
 import telepot
 from telepot.loop import MessageLoop
-from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
 import splinter
 import os
 import sys
-
-
-days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
-def on_chat_message(msg):
-    content_type, chat_type, chat_id = telepot.glance(msg)
-    #response=getUpdates()
-    #tuples=tuple(listofsem)
-    
-    
 
 reply_dict = {
     'hi': 'Hi',
@@ -51,8 +41,8 @@ reply_dict = {
     'hey bot':'yep?',
     'im bored':"I'm not sure I can help you with that. Sorry :(",
     "i'm bored":"I'm not sure I can help you with that. Sorry :(",
-    'course':"Feeling productive are we? Okay, let's get started!",
-    'meetings':"Feeling productive are we? Okay, let's get started!",
+    'course':"Feeling productive are we? Okay, let's get started",
+    'meetings':"Feeling productive are we? Okay, let's get started",
     
         }
 second_reply = {
@@ -98,10 +88,7 @@ second_reply = {
 def handle(msg):
     content_type, chat_type, chat_id = telepot.glance(msg)
     print(content_type, chat_type, chat_id)  # debug msg received
-    if content_type=='callback_query':
-        query_id, from_id, query_data = telepot.glance(msg, flavor='callback_query')
-        print('Callback Query:', query_id, from_id, query_data)
-        bot.answerCallbackQuery(query_id, text='Got it')
+
     if content_type == 'text':
         response = bot.getUpdates()
         print(response)  # debug id response
@@ -132,15 +119,7 @@ def handle(msg):
         elif msg_received == 'hey':
             bot.sendMessage(chat_id,reply_dict[msg_received]+', ' + response[0]['message']['from']['first_name']+'!')
         elif msg_received.find('rude')!= -1 :
-            bot.sendMessage(chat_id,reply_dict['rude'])
-        elif msg_received=='meetings':
-            bot.sendMessage(chat_id, reply_dict[msg_received])
-            inlines_keyboard=[[]]
-            for i in range(0,len(days)) :
-                print(days[i])
-                inlines_keyboard.append([InlineKeyboardButton(text=days[i])])
-            keyboard = InlineKeyboardMarkup(inline_keyboard=inlines_keyboard)
-            bot.sendMessage(chat_id, 'Choose a day!', reply_markup=keyboard)
+            bot.sendMessage(chat_id,reply_dict[msg_received])
         elif msg_received in reply_dict:
             print(reply_dict[msg_received])  # debug reply
             if second_reply[msg_received] == 1:
@@ -151,7 +130,6 @@ def handle(msg):
 
 cwd = os.path.dirname(sys.argv[0])
 path_file = cwd + '/a.txt'
-
 f = open(path_file, "r")
 token = (f.read())
 f.close()
@@ -159,7 +137,6 @@ bot = telepot.Bot(token)
 
 MessageLoop(bot, handle).run_as_thread()
 print("Listening...")
-
 
 # Keep the program running.
 while 1:

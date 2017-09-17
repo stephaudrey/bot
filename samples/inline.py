@@ -3,17 +3,20 @@ import time
 import telepot
 from telepot.loop import MessageLoop
 from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
-a=['a','b','c','d']
+days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
+
 def on_chat_message(msg):
     content_type, chat_type, chat_id = telepot.glance(msg)
+    #response=getUpdates()
     #tuples=tuple(listofsem)
-    inlines_keyboard=[[]]
-    for i in range(0,len(a)) :
-        print(a[i])
-        inlines_keyboard.append([InlineKeyboardButton(text=a[i], callback_data=a[i])])
-    keyboard = InlineKeyboardMarkup(inline_keyboard=inlines_keyboard)
-    bot.sendMessage(chat_id, 's', reply_markup=keyboard)
-    print(type(keyboard))
+    if msg['text']=="meetings":
+        inlines_keyboard=[[]]
+        for i in range(0,len(days)) :
+            print(days[i])
+            inlines_keyboard.append([InlineKeyboardButton(text=days[i], callback_data=a[i])])
+        keyboard = InlineKeyboardMarkup(inline_keyboard=inlines_keyboard)
+        bot.sendMessage(chat_id, 'Choose a day!', reply_markup=keyboard)
+        print(type(keyboard))
     
 def on_callback_query(msg):
     query_id, from_id, query_data = telepot.glance(msg, flavor='callback_query')

@@ -14,7 +14,12 @@ def on_chat_message(msg):
     #response=getUpdates()
     #tuples=tuple(listofsem)
     
+        
     
+def on_callback_query(msg):
+    query_id, from_id, query_data = telepot.glance(msg, flavor='callback_query')
+    print('Callback Query:', query_id, from_id, query_data)
+    bot.answerCallbackQuery(query_id, text='Got it')
 
 reply_dict = {
     'hi': 'Hi',
@@ -51,8 +56,8 @@ reply_dict = {
     'hey bot':'yep?',
     'im bored':"I'm not sure I can help you with that. Sorry :(",
     "i'm bored":"I'm not sure I can help you with that. Sorry :(",
-    'course':"Feeling productive are we? Okay, let's get started!",
-    'meetings':"Feeling productive are we? Okay, let's get started!",
+    'course':"Feeling productive are we? Okay, let's get started",
+    'meetings':"Feeling productive are we? Okay, let's get started",
     
         }
 second_reply = {
@@ -98,10 +103,7 @@ second_reply = {
 def handle(msg):
     content_type, chat_type, chat_id = telepot.glance(msg)
     print(content_type, chat_type, chat_id)  # debug msg received
-    if content_type=='callback_query':
-        query_id, from_id, query_data = telepot.glance(msg, flavor='callback_query')
-        print('Callback Query:', query_id, from_id, query_data)
-        bot.answerCallbackQuery(query_id, text='Got it')
+
     if content_type == 'text':
         response = bot.getUpdates()
         print(response)  # debug id response
@@ -138,7 +140,7 @@ def handle(msg):
             inlines_keyboard=[[]]
             for i in range(0,len(days)) :
                 print(days[i])
-                inlines_keyboard.append([InlineKeyboardButton(text=days[i])])
+                inlines_keyboard.append([InlineKeyboardButton(text=days[i], callback_data=days[i])])
             keyboard = InlineKeyboardMarkup(inline_keyboard=inlines_keyboard)
             bot.sendMessage(chat_id, 'Choose a day!', reply_markup=keyboard)
         elif msg_received in reply_dict:
