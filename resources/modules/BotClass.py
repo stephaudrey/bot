@@ -22,9 +22,25 @@ class API(object):
         self._db_chat = {}
         self._list_update_message = []
     
+    @property
+    def db_chat(self):
+        return self._db_chat
+
+    @property
+    def list_update_message(self):
+        return self._list_update_message
+
+    @db_chat.setter
+    def db_chat(self, value):
+        self._db_chat = value
+
+    @list_update_message.setter
+    def list_update_message(self, value):
+        self._list_update_message = value
+    
     def handleAPI(self, msg):
-        content_type, self.chat_type, chat_id = telepot.glance(msg)
-        print(content_type, self.chat_type, chat_id)  # debug msg received
+        content_type, chat_type, chat_id = telepot.glance(msg)
+        print(content_type, chat_type, chat_id)  # debug msg received
         response = self.bot.getUpdates()
         self.StoreChat(response)
 
@@ -42,7 +58,7 @@ class API(object):
                 
                 elif msg_received == '/createevent':
                     msg_reply = "Okay send me the details in following format:"
-                    str_format = "Event Name;location;yyyy-mm-ddThh:mm;yyyy-mm-ddThh:mm"
+                    str_format = "Event Name;location;yyyy-mm-ddThh:mm:ss;yyyy-mm-ddThh:mm:ss"
                     self.bot.sendMessage(chat_id, msg_reply)
                     self.bot.sendMessage(chat_id, str_format)
                     print(response)
@@ -50,7 +66,7 @@ class API(object):
                 elif msg_received == '/addindex':
                     msg_reply = "Sure thing. Please type your details in following format: \n"
                     str_format = "Course Name;Course Type(Full/Part Time);Index Number"
-                    self.bot.sendMessage(chat_id,msg_reply)
+                    self.bot.sendMessage(chat_id, msg_reply)
                     self.bot.sendMessage(chat_id, str_format)
                     print(response)
                     
@@ -61,6 +77,12 @@ class API(object):
                     self.bot.sendMessage(chat_id, "Please enter the date interval using the following format: ")
                     self.bot.sendMessage(chat_id, "YYYY-MM-DD HH:MM;YYYY-MM-DD HH:MM")
                 
+                elif msg_received == '/scheduleindex':
+                    self.bot.sendMessage(chat_id, "Please Enter your index using the following format: ")
+                    self.bot.sendMessage(chat_id, "CourseCode;Location;LAB/LEC/TUT;start_time;end_time;first_recess_week, fist_week")
+                    self.bot.sendMessage(chat_id, 'For example: ')
+                    self.bot.sendMessage(chat_id, 'CZ1005;HWLAB3;LAB;14:30:00;16:30:00;2017-10-2;2017-8-14')
+
                 else:
                     self.bot.sendMessage(chat_id, "Command not updated!")
 
@@ -71,7 +93,7 @@ class API(object):
                 BotCommandObject = BotCommand(msg['text'])
                 
                 # This checks if the last msg['text'] is indeed a command
-                if self.list_update_message[-2] == '/createevent':
+                if len(self.list_update_message) >= 2 and self.list_update_message[-2] == '/createevent':
                     
                     try:
                         BotCommandObject.CreateEventCommand()
@@ -82,7 +104,7 @@ class API(object):
                     else:
                         self.bot.sendMessage(chat_id, 'Successful!')
                 
-                elif self.list_update_message[-2] == '/isfree':
+                elif len(self.list_update_message) >= 2 and self.list_update_message[-2] == '/isfree':
                     try:
 
                         isFree = BotCommandObject.IsFreeCommand()
@@ -100,21 +122,32 @@ class API(object):
                             self.bot.sendMessage(chat_id, 'You are busy on this interval!')
                             self.bot.sendMessage(chat_id, 'You have an event from %s to %s' % (start_busy, end_busy))
                 
-                elif self.list_update_message[-2] == '/addindex':
+                elif len(self.list_update_message) >= 2 and self.list_update_message[-2] == '/addindex':
                     
                     self.bot.sendMessage(chat_id, 'Please wait while we process your information. This may take around a minute.\n')
                     self.bot.sendMessage(chat_id, 'To prevent crashing, please wait until the Success message has appeared.\n')
                     try:
-                        BotCommand().AddIndexCommand(msg['text'])
+                        BotCommand(msg['text']).AddIndexCommand()
                     
                     except:
                         self.bot.sendMessage(chat_id, 'Cannot add index! Make sure you have entered the correct format!')
 
                     else:
                         self.bot.sendMessage(chat_id, "Successfully added! :)")
+                        #BotCommand(msg['text']).AddIndexCommand() #debug purpose
 
-                else:
+                elif len(self.list_update_message) >= 2 and self.list_update_message[-2] == '/scheduleindex':
+                    try:
+                        BotCommandObject.ScheduleIndexCommand()
                     
+                    except:
+                        self.bot.sendMessage(chat_id, 'Cannot schedule index! Make sure you have entered the correct format!')
+
+                    else:
+                        self.bot.sendMessage(chat_id, "Successfully added! :)")
+                
+                else:
+
                     # Below is not a command. It only makes the bot smarter
                     # manual emoticons ONLY :p
                     if msg_received[0] == ':':
@@ -167,22 +200,6 @@ class API(object):
         # only the text
         self.list_update_message = list(self.db_chat.values())
 
-    @property
-    def db_chat(self):
-        return self._db_chat
-
-    @property
-    def list_update_message(self):
-        return self._list_update_message
-
-    @db_chat.setter
-    def db_chat(self, value):
-        self._db_chat = value
-
-    @list_update_message.setter
-    def list_update_message(self, value):
-        self._list_update_message = value
-
 
 class BotReply(API):
     """This is a class for Replies"""
@@ -200,14 +217,14 @@ class BotReply(API):
             'good day': 'Good day',
             'who created you?': 'Awesome people named Jason, Hans, Audrey, Gaby, and Dennis :)',
             'who created you': 'Awesome people named Jason, Hans, Audrey, Gaby, and Dennis :)',
-            'where are you from?': 'I was made at NTU Singapore :) Pretty cool isnt it?',
-            'where are you from': 'I was made at NTU Singapore :) Pretty cool isnt it?',
+            'where are you from?': 'I was made at NTU Singapore :) Pretty cool isn\'t it?',
+            'where are you from': 'I was made at NTU Singapore :) Pretty cool isn\'t it?',
             'how old are you?': 'I was made sometime in early September 2017',
             'how old are you': 'I was made sometime in early September 2017',
             'what are you doing?': 'Replying you. Duh.',
             'what are you doing': 'Replying you. Duh.',
-            'what are you?': 'i\'m a bot :))',
-            'what are you': "i'm a bot :))",
+            'what are you?': 'I\'m a bot :))',
+            'what are you': "I'm a bot :))",
             'what do you do?': 'type in /start to know :)',
             'what do you do': 'type in /start to know :)',
             'who are you?': "i'm a bot :))",
@@ -259,6 +276,7 @@ class BotCommand(API):
             '/createevent',
             '/mergeevent',
             '/isfree',
+            '/scheduleindex',
             '/quit'
         ]
         self.str_text = str_text
@@ -267,6 +285,22 @@ class BotCommand(API):
         self._start_busy = None
         self._end_busy = None
 
+    @property
+    def start_busy(self):
+        return self._start_busy
+
+    @property
+    def end_busy(self):
+        return self._end_busy
+
+    @start_busy.setter
+    def start_busy(self, value):
+        self._start_busy = value
+
+    @end_busy.setter
+    def end_busy(self, value):
+        self._end_busy = value
+    
     def isValidCommand(self):
         return self.str_text in self.command_list
 
@@ -297,26 +331,24 @@ class BotCommand(API):
             self.end_busy = info_busy[1]
         return isFree
 
-    @property
-    def start_busy(self):
-        return self._start_busy
-
-    @property
-    def end_busy(self):
-        return self._end_busy
-
-    @start_busy.setter
-    def start_busy(self, value):
-        self._start_busy = value
-
-    @end_busy.setter
-    def end_busy(self, value):
-        self._end_busy = value
-
-    def AddIndexCommand(self, str_text):
-        str_input = hc.StringParseIndex(str_text)
+    def AddIndexCommand(self):
+        str_input = hc.StringParseIndex(self.str_text)
         str_input.Parse()
         course_name = str_input.course_name
         course_type = str_input.course_type
         index = str_input.index
         hc.splintergetdata().start(course_name, course_type, index)
+
+    def ScheduleIndexCommand(self):
+        str_input = hc.StringParseGoogleAPI(self.str_text)
+        str_input.ParseIndexInput()
+        
+        course_code = str_input.course_code
+        location_course = str_input.location_course
+        class_type = str_input.class_type
+        start_time = str_input.start_time
+        end_time = str_input.end_time
+        first_recess_week = str_input.first_recess_week
+        first_week = str_input.first_week
+
+        gc.GoogleAPI().CreateEventIndex(course_code, location_course, class_type, start_time, end_time, first_recess_week, first_week)
